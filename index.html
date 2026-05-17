@@ -1,0 +1,1297 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Programação de Campo</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5f0eb;
+      --surface: #ffffff;
+      --header-bg: #3b2d25;
+      --accent: #8b5e3c;
+      --accent-light: #cbb3a6;
+      --text: #1c1410;
+      --text-muted: #7a6a62;
+      --border: #d5c8c0;
+      --input-bg: #faf7f5;
+      --green: #4a6b4a;
+      --red: #8b3a3a;
+      --radius: 10px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── PAINEL FORMULÁRIO ── */
+    .painel-form {
+      background: var(--surface);
+      padding: 2rem 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .form-logo {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+    .form-logo strong {
+      display: block;
+      font-size: 1.6rem;
+      font-style: normal;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .secao-titulo {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .cabecalho-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .campo-full { grid-column: 1 / -1; }
+
+    .campo { display: flex; flex-direction: column; gap: 0.3rem; }
+    .campo label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .campo input, .campo select {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .campo input:focus, .campo select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139,94,60,0.12);
+    }
+
+    /* ── SEMANA BLOCO ── */
+    .semana-bloco {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .semana-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      background: var(--header-bg);
+      color: #f5f0eb;
+      font-family: 'EB Garamond', serif;
+      font-size: 0.95rem;
+    }
+    .semana-datas {
+      font-size: 0.72rem;
+      opacity: 0.7;
+      font-style: italic;
+    }
+
+    .dias-grid-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .dias-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(90px, 1fr));
+      min-width: 630px;
+    }
+    .dia-col-header {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 0.45rem 0.2rem;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      background: #f0eae5;
+    }
+    .dia-col-header:last-child { border-right: none; }
+
+    .dia-celula {
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      min-height: 110px;
+      padding: 0.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      position: relative;
+      overflow: visible;
+    }
+    .dia-celula:nth-child(7n) { border-right: none; }
+    .dia-celula:last-child { border-right: none; }
+
+    /* Dia em destaque */
+    .dia-celula.destaque {
+      background: #fff8e1;
+      box-shadow: inset 0 0 0 2px #e6a817;
+    }
+    .dia-celula.destaque .dia-numero { color: #b56f00; }
+
+    /* Checkbox de destaque */
+    .dia-destaque-wrap {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .dia-destaque-wrap label {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .dia-destaque-wrap input[type=checkbox] {
+      accent-color: #e6a817;
+      width: 13px;
+      height: 13px;
+      cursor: pointer;
+    }
+
+    /* Número do dia no canto */
+    .dia-numero {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1;
+      padding: 1px 2px;
+    }
+
+    /* Célula vazia (fora do mês) */
+    .dia-celula.vazio {
+      background: #f0ebe6;
+      pointer-events: none;
+    }
+    .dia-celula.vazio::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 4px,
+        rgba(0,0,0,0.03) 4px,
+        rgba(0,0,0,0.03) 5px
+      );
+    }
+
+    .horario-item {
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0.3rem 0.4rem;
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+
+    /* Paleta por índice — amarelo claro → âmbar → caramelo escuro */
+    .horario-item[data-idx="0"] { background: #fffbe6; border-color: #f5d97a; }
+    .horario-item[data-idx="1"] { background: #ffefc0; border-color: #e6b830; }
+    .horario-item[data-idx="2"] { background: #ffd780; border-color: #c8920a; }
+    .horario-item[data-idx="3"] { background: #ffc14d; border-color: #b07000; }
+    .horario-item[data-idx="4"] { background: #f5a623; border-color: #8a5200; }
+    /* fallback para mais de 5 */
+    .horario-item { background: #fffbe6; }
+    .hi-horario {
+      font-weight: 700;
+      color: var(--header-bg);
+      display: block;
+      font-size: 0.82rem;
+    }
+    .hi-info {
+      color: var(--text-muted);
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hi-acoes { display: flex; gap: 6px; margin-top: 4px; }
+    .hi-btn {
+      background: transparent;
+      border: none;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 5px 7px;
+      min-height: 34px;
+      font-family: 'DM Sans', sans-serif;
+      text-decoration: underline;
+      display: flex;
+      align-items: center;
+    }
+    .hi-btn-edit { color: var(--accent); }
+    .hi-btn-del  { color: var(--red); }
+
+    .btn-add-horario {
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      padding: 0.5rem 0;
+      width: 100%;
+      transition: all 0.15s;
+      margin-top: auto;
+      min-height: 40px;
+    }
+    .btn-add-horario:hover, .btn-add-horario:active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(139,94,60,0.06);
+    }
+
+    /* Campo de observação do dia */
+    .dia-obs-wrap { margin-top: 2px; }
+    .dia-obs-input {
+      width: 100%;
+      font-size: 0.72rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: rgba(255,255,255,0.7);
+      border: 1px dashed var(--border);
+      border-radius: 4px;
+      padding: 3px 5px;
+      resize: none;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+      line-height: 1.4;
+      min-height: 28px;
+      box-sizing: border-box;
+    }
+    .dia-obs-input::placeholder { color: #bbb; font-style: italic; }
+    .dia-obs-input:focus { border-color: var(--accent); background: #fff; }
+    .dia-celula.destaque .dia-obs-input { border-color: #e6a817; background: rgba(255,248,225,0.8); }
+
+    /* Observação no documento de impressão */
+    .doc-obs {
+      font-size: 9px;
+      font-style: italic;
+      color: #555;
+      background: #fffde7;
+      border-left: 2px solid #e6a817;
+      padding: 2px 4px;
+      margin-bottom: 3px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    /* ── HEADER FIXO ── */
+    .top-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 500;
+      background: #1c1c2e;
+      padding: 0.6rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+    }
+
+    .header-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 1.1rem;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #3b5bdb;
+      color: #fff;
+      white-space: nowrap;
+      min-height: 40px;
+    }
+    .header-btn:hover { background: #2f4ac4; transform: translateY(-1px); }
+    .header-btn:active { transform: translateY(0); }
+    .header-btn svg { flex-shrink: 0; }
+
+    /* Empurrar conteúdo para baixo do header */
+    .app { padding-top: 60px; }
+
+    /* Botões exportar */
+    .acoes { display: flex; gap: 0.75rem; padding-top: 0.5rem; }
+    .btn-exportar {
+      flex: 1;
+      padding: 1rem;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-height: 52px;
+    }
+    .btn-jpg { background: var(--header-bg); color: #f5f0eb; }
+    .btn-jpg:hover { background: #4e3b30; }
+    .btn-pdf { background: var(--accent); color: #fff; }
+    .btn-pdf:hover { background: #7a4f2f; }
+    .btn-preview { background: var(--border); color: var(--text); }
+    .btn-preview:hover { background: var(--accent-light); }
+
+    /* ── MODAL PREVIEW ── */
+    .modal-preview-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(28,20,16,0.72);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-preview-overlay.ativo { display: flex; }
+    .modal-preview-box {
+      background: #ddd8d2;
+      border-radius: 14px;
+      padding: 1.25rem;
+      width: min(860px, 96vw);
+      max-height: 96vh;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      box-shadow: 0 16px 48px rgba(28,20,16,0.35);
+    }
+    .modal-preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-preview-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #7a6e68;
+    }
+    .modal-preview-fechar {
+      background: transparent;
+      border: none;
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+      color: #7a6e68;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .modal-preview-fechar:hover { background: rgba(0,0,0,0.1); }
+    .modal-preview-scroll {
+      overflow-y: auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    #preview-scale-container {
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .doc-scale-container { position: relative; }
+
+    /* ── DOCUMENTO A4 ── */
+    #documento-exportavel {
+      width: 794px;
+      height: 1123px;
+      background: #fff;
+      padding: 18px 22px;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 4px 28px rgba(59,45,37,0.22);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .doc-cabecalho {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 6px 8px;
+      border-bottom: 2px solid black;
+      background-color: #cbb3a6;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+    .doc-ano-mes { display: flex; flex-direction: column; align-items: center; }
+    #doc-ano { font-size: 22px; font-weight: bold; }
+    #doc-mes { font-size: 14px; border-bottom: 2px solid black; padding: 0 4px; }
+    .doc-porcon { display: flex; flex-direction: column; align-items: center; }
+    .doc-porcon h2 { font-size: 13px; font-weight: bold; }
+    #doc-cong {
+      font-size: 12px;
+      border: 1px solid #888;
+      padding: 2px 8px;
+      background: #f9f5f2;
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.15);
+      margin-top: 2px;
+    }
+
+    #doc-tabela {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      flex: 1;
+    }
+    #doc-tabela th {
+      border: 1px solid black;
+      padding: 4px 3px;
+      text-align: center;
+      background-color: #cbb3a6;
+      font-weight: bold;
+      font-size: 11px;
+    }
+    #doc-tabela td {
+      border: 1px solid black;
+      padding: 3px 3px;
+      vertical-align: top;
+      font-size: 10px;
+      word-wrap: break-word;
+    }
+
+    /* Dia vazio no documento */
+    .doc-td-vazio {
+      background: repeating-linear-gradient(
+        -45deg,
+        #f5f0eb,
+        #f5f0eb 3px,
+        #ede6df 3px,
+        #ede6df 4px
+      ) !important;
+    }
+
+    /* Dia em destaque no documento */
+    .doc-td-destaque {
+      background: #fff8e1 !important;
+      border: 2px solid #e6a817 !important;
+    }
+    .doc-td-destaque .doc-dia-num { color: #b56f00 !important; }
+
+    /* Número do dia no documento */
+    .doc-dia-num {
+      font-size: 13px;
+      font-weight: bold;
+      color: #8b5e3c;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .doc-horario-entry {
+      border-top: 1px dashed #ccc;
+      padding: 2px 0;
+      text-align: left;
+    }
+    .doc-horario-entry:first-child { border-top: none; }
+    .doc-horario-entry[data-idx="0"] { background: #fffbe6; }
+    .doc-horario-entry[data-idx="1"] { background: #ffefc0; }
+    .doc-horario-entry[data-idx="2"] { background: #ffd780; }
+    .doc-horario-entry[data-idx="3"] { background: #ffc14d; }
+    .doc-horario-entry[data-idx="4"] { background: #f5a623; }
+    .dh-label { font-size: 9px; color: #888; display: block; }
+    .dh-val { font-size: 11px; color: #111; font-weight: bold; display: block; line-height: 1.3; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(28,20,16,0.55);
+      backdrop-filter: blur(3px);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.ativo { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 2rem;
+      width: min(400px, 92vw);
+      box-shadow: 0 16px 40px rgba(28,20,16,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h3 {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.3rem;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+    .modal-subtitulo {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+    }
+    .modal .campo { margin-bottom: 0.85rem; }
+    .modal-acoes { display: flex; gap: 0.75rem; margin-top: 1.2rem; }
+    .btn-modal {
+      flex: 1;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 7px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-aplicar { background: var(--green); color: #fff; }
+    .btn-aplicar:hover { background: #3a5a3a; }
+    .btn-cancelar { background: var(--red); color: #fff; }
+    .btn-cancelar:hover { background: #6e2c2c; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ HEADER FIXO ══════════ -->
+<header class="top-header">
+  <button class="header-btn" onclick="salvarArquivo()" title="Salvar arquivo JSON">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Salvar
+  </button>
+  <button class="header-btn" onclick="carregarArquivo()" title="Carregar arquivo JSON">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Carregar
+  </button>
+  <button class="header-btn" onclick="abrirModalPreview()" title="Pré-visualizar documento">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Pré-Visualizar
+  </button>
+  <button class="header-btn" onclick="imprimirDocumento()" title="Imprimir documento">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Imprimir
+  </button>
+  <button class="header-btn" onclick="salvarPDF()" title="Baixar como PDF">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+    Baixar PDF
+  </button>
+  <button class="header-btn" onclick="exportarJPG()" title="Baixar como imagem">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    Baixar Foto
+  </button>
+</header>
+
+<input type="file" id="input-carregar" accept=".json" style="display:none" onchange="lerArquivo(event)" />
+
+<div class="app">
+
+  <!-- ══════════ FORMULÁRIO ══════════ -->
+  <aside class="painel-form">
+
+    <div class="form-logo">
+      Programação
+      <strong>Campo Mensal</strong>
+    </div>
+
+    <!-- Cabeçalho -->
+    <div>
+      <p class="secao-titulo">Informações gerais</p>
+      <div class="cabecalho-inputs">
+        <div class="campo">
+          <label>Mês</label>
+          <select id="inp-mes"></select>
+        </div>
+        <div class="campo">
+          <label>Ano</label>
+          <select id="inp-ano"></select>
+        </div>
+        <div class="campo campo-full">
+          <label>Congregação</label>
+          <input type="text" id="inp-cong" placeholder="Nome da congregação" autocomplete="off" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Semanas geradas automaticamente -->
+    <div>
+      <p class="secao-titulo">Calendário do mês</p>
+      <div id="container-semanas" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+    </div>
+
+
+
+  </aside>
+
+</div>
+
+<!-- ══════════ MODAL PREVIEW ══════════ -->
+<div class="modal-preview-overlay" id="modal-preview-overlay">
+  <div class="modal-preview-box">
+    <div class="modal-preview-header">
+      <span class="modal-preview-label">Pré-visualização — A4</span>
+      <button class="modal-preview-fechar" onclick="fecharModalPreview()">✕</button>
+    </div>
+    <div class="modal-preview-scroll" id="modal-preview-scroll">
+      <div id="preview-scale-container">
+        <!-- documento injetado aqui via JS ao abrir preview -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Documento A4 sempre no DOM (fora da tela) para captura -->
+<div id="doc-wrapper" style="position:fixed;top:-9999px;left:-9999px;z-index:-1;visibility:hidden;pointer-events:none;">
+  <div id="documento-exportavel">
+
+    <div class="doc-cabecalho">
+      <div class="doc-ano-mes">
+        <span id="doc-ano"></span>
+        <span id="doc-mes"></span>
+      </div>
+      <div class="doc-porcon">
+        <h2>Programação Mensal de Campo</h2>
+        <div id="doc-cong">—</div>
+      </div>
+    </div>
+
+    <table id="doc-tabela">
+      <thead>
+        <tr>
+          <th>Segunda-Feira</th>
+          <th>Terça-Feira</th>
+          <th>Quarta-Feira</th>
+          <th>Quinta-Feira</th>
+          <th>Sexta-Feira</th>
+          <th>Sábado</th>
+          <th>Domingo</th>
+        </tr>
+      </thead>
+      <tbody id="doc-tbody"></tbody>
+    </table>
+
+  </div>
+</div>
+
+<!-- ══════════ MODAL ══════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-titulo">Adicionar horário</h3>
+    <p class="modal-subtitulo" id="modal-subtitulo"></p>
+    <div class="campo">
+      <label>Horário</label>
+      <input type="time" id="m-horario" />
+    </div>
+    <div class="campo">
+      <label>Local</label>
+      <input type="text" id="m-local" placeholder="Local do campo" />
+    </div>
+    <div class="campo">
+      <label>Dirigente</label>
+      <input type="text" id="m-dirigente" placeholder="Nome do dirigente" />
+    </div>
+    <div class="modal-acoes">
+      <button class="btn-modal btn-aplicar" onclick="aplicarDado()">Aplicar</button>
+      <button class="btn-modal btn-cancelar" onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+
+const MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS_CURTO  = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const DIAS_FULL   = ['Segunda-Feira','Terça-Feira','Quarta-Feira','Quinta-Feira','Sexta-Feira','Sábado','Domingo'];
+
+// ── ESTADO ───────────────────────────────────────────────────
+let dados = {};
+let diasDestacados = {};
+let observacoes = {};
+let anoAtual, mesAtual;
+let modalCtx = null;
+
+// ── LOCALSTORAGE ─────────────────────────────────────────────
+function chaveLS() {
+  return `programacao-campo:${anoAtual}-${mesAtual}`;
+}
+
+function salvarLS() {
+  const estado = {
+    dados,
+    diasDestacados,
+    observacoes,
+    congregacao: document.getElementById('inp-cong').value || ''
+  };
+  localStorage.setItem(chaveLS(), JSON.stringify(estado));
+}
+
+function carregarLS() {
+  try {
+    const raw = localStorage.getItem(chaveLS());
+    if (!raw) return;
+    const estado = JSON.parse(raw);
+    dados = estado.dados || {};
+    diasDestacados = estado.diasDestacados || {};
+    observacoes = estado.observacoes || {};
+    if (estado.congregacao) {
+      document.getElementById('inp-cong').value = estado.congregacao;
+      document.getElementById('doc-cong').textContent = estado.congregacao || '—';
+    }
+  } catch(e) { dados = {}; diasDestacados = {}; observacoes = {}; }
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const agora = new Date();
+  anoAtual = agora.getFullYear();
+  mesAtual = agora.getMonth();
+
+  const selMes = document.getElementById('inp-mes');
+  MESES_NOMES.forEach((m, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = m;
+    if (i === mesAtual) opt.selected = true;
+    selMes.appendChild(opt);
+  });
+
+  const selAno = document.getElementById('inp-ano');
+  for (let a = agora.getFullYear() - 2; a <= agora.getFullYear() + 5; a++) {
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    if (a === anoAtual) opt.selected = true;
+    selAno.appendChild(opt);
+  }
+
+  selMes.addEventListener('change', () => { mesAtual = +selMes.value; trocarMes(); });
+  selAno.addEventListener('change', () => { anoAtual = +selAno.value; trocarMes(); });
+
+  document.getElementById('inp-cong').addEventListener('input', () => {
+    document.getElementById('doc-cong').textContent =
+      document.getElementById('inp-cong').value || '—';
+    salvarLS();
+  });
+
+  inicializarMes();
+  window.addEventListener('resize', () => {
+    if (document.getElementById('modal-preview-overlay').classList.contains('ativo')) {
+      escalarPreviewModal();
+    }
+  });
+});
+
+// ── TROCA MÊS/ANO ────────────────────────────────────────────
+function trocarMes() {
+  dados = {};
+  diasDestacados = {};
+  observacoes = {};
+  document.getElementById('inp-cong').value = '';
+  document.getElementById('doc-cong').textContent = '—';
+  inicializarMes();
+}
+
+// ── INICIALIZAR MÊS ──────────────────────────────────────────
+function inicializarMes() {
+  document.getElementById('doc-ano').textContent = anoAtual;
+  document.getElementById('doc-mes').textContent = MESES_NOMES[mesAtual];
+
+  carregarLS();
+  renderizarSemanas();
+  renderizarDocumento();
+}
+
+// ── CALENDÁRIO ───────────────────────────────────────────────
+function diaSemanaParaIndice(jsDay) {
+  return (jsDay + 6) % 7;
+}
+
+function gerarSemanas() {
+  const totalDias = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  const primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
+  const offsetInicio = diaSemanaParaIndice(primeiroDia);
+
+  const grade = [];
+  for (let i = 0; i < offsetInicio; i++) grade.push(null);
+  for (let d = 1; d <= totalDias; d++) grade.push(d);
+  while (grade.length % 7 !== 0) grade.push(null);
+
+  const semanas = [];
+  for (let i = 0; i < grade.length; i += 7) {
+    semanas.push(grade.slice(i, i + 7));
+  }
+  return semanas;
+}
+
+// ── RENDERIZAR FORMULÁRIO ────────────────────────────────────
+function renderizarSemanas() {
+  const cont = document.getElementById('container-semanas');
+  cont.innerHTML = '';
+
+  const semanas = gerarSemanas();
+
+  semanas.forEach((semana, si) => {
+    const diasValidos = semana.filter(d => d !== null);
+    const de = diasValidos[0], ate = diasValidos[diasValidos.length - 1];
+
+    const bloco = document.createElement('div');
+    bloco.className = 'semana-bloco';
+
+    const header = document.createElement('div');
+    header.className = 'semana-header';
+    header.innerHTML = `
+      <span>Semana ${si + 1}</span>
+      <span class="semana-datas">${de ? de + '/' + (mesAtual+1) : ''} — ${ate ? ate + '/' + (mesAtual+1) : ''}</span>`;
+    bloco.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'dias-grid';
+
+    DIAS_CURTO.forEach(d => {
+      const h = document.createElement('div');
+      h.className = 'dia-col-header';
+      h.textContent = d;
+      grid.appendChild(h);
+    });
+
+    semana.forEach((diaNum) => {
+      const cel = document.createElement('div');
+      cel.className = 'dia-celula' + (diaNum === null ? ' vazio' : '');
+
+      if (diaNum !== null) {
+        // Aplica destaque se marcado
+        if (diasDestacados[diaNum]) cel.classList.add('destaque');
+
+        const numEl = document.createElement('span');
+        numEl.className = 'dia-numero';
+        numEl.textContent = diaNum;
+        cel.appendChild(numEl);
+
+        // Checkbox de destaque
+        const destaqueWrap = document.createElement('div');
+        destaqueWrap.className = 'dia-destaque-wrap';
+        const chkId = `chk-destaque-${diaNum}`;
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.id = chkId;
+        chk.checked = !!diasDestacados[diaNum];
+        chk.addEventListener('change', () => {
+          diasDestacados[diaNum] = chk.checked;
+          cel.classList.toggle('destaque', chk.checked);
+          salvarLS();
+          renderizarDocumento();
+        });
+        const lbl = document.createElement('label');
+        lbl.htmlFor = chkId;
+        lbl.textContent = '★';
+        lbl.title = 'Destacar este dia';
+        destaqueWrap.appendChild(chk);
+        destaqueWrap.appendChild(lbl);
+        cel.appendChild(destaqueWrap);
+
+        const CORES_BG     = ['#fffbe6','#ffefc0','#ffd780','#ffc14d','#f5a623'];
+        const CORES_BORDER = ['#f5d97a','#e6b830','#c8920a','#b07000','#8a5200'];
+
+        const horarios = dados[diaNum] || [];
+        horarios.forEach((h, hi) => {
+          const item = document.createElement('div');
+          item.className = 'horario-item';
+          item.dataset.idx = hi % 5;
+          const cor = hi % 5;
+          item.style.background   = CORES_BG[cor];
+          item.style.borderColor  = CORES_BORDER[cor];
+          item.innerHTML = `
+            <span class="hi-horario">${h.horario || ''}</span>
+            <span class="hi-info">${h.local || ''}</span>
+            <span class="hi-info">${h.dirigente || ''}</span>
+            <div class="hi-acoes">
+              <button class="hi-btn hi-btn-edit" onclick="abrirModalEditar(${diaNum},${hi})">editar</button>
+              <button class="hi-btn hi-btn-del" onclick="removerHorario(${diaNum},${hi})">✕</button>
+            </div>`;
+          cel.appendChild(item);
+        });
+
+        const btnAdd = document.createElement('button');
+        btnAdd.className = 'btn-add-horario';
+        btnAdd.textContent = '+ horário';
+        btnAdd.onclick = () => abrirModalNovo(diaNum);
+        cel.appendChild(btnAdd);
+
+        // Campo de observação do dia
+        const obsWrap = document.createElement('div');
+        obsWrap.className = 'dia-obs-wrap';
+        const obsInput = document.createElement('textarea');
+        obsInput.className = 'dia-obs-input';
+        obsInput.rows = 2;
+        obsInput.placeholder = 'Observação / evento...';
+        obsInput.value = observacoes[diaNum] || '';
+        obsInput.addEventListener('input', () => {
+          observacoes[diaNum] = obsInput.value;
+          salvarLS();
+          renderizarDocumento();
+        });
+        obsWrap.appendChild(obsInput);
+        cel.appendChild(obsWrap);
+      }
+
+      grid.appendChild(cel);
+    });
+
+    const wrap = document.createElement('div');
+    wrap.className = 'dias-grid-wrap';
+    wrap.appendChild(grid);
+    bloco.appendChild(wrap);
+    cont.appendChild(bloco);
+  });
+}
+
+// ── MODAL HORÁRIO ────────────────────────────────────────────
+function labelDia(diaNum) {
+  const jsDay = new Date(anoAtual, mesAtual, diaNum).getDay();
+  const idx = diaSemanaParaIndice(jsDay);
+  return `${DIAS_FULL[idx]}, ${diaNum} de ${MESES_NOMES[mesAtual]}`;
+}
+
+function abrirModalNovo(diaNum) {
+  modalCtx = { diaNum, hi: null };
+  document.getElementById('modal-titulo').textContent = 'Adicionar horário';
+  document.getElementById('modal-subtitulo').textContent = labelDia(diaNum);
+  document.getElementById('m-horario').value = '';
+  document.getElementById('m-local').value = '';
+  document.getElementById('m-dirigente').value = '';
+  document.getElementById('modal-overlay').classList.add('ativo');
+  setTimeout(() => document.getElementById('m-horario').focus(), 50);
+}
+
+function abrirModalEditar(diaNum, hi) {
+  modalCtx = { diaNum, hi };
+  const h = (dados[diaNum] || [])[hi];
+  document.getElementById('modal-titulo').textContent = 'Editar horário';
+  document.getElementById('modal-subtitulo').textContent = labelDia(diaNum);
+  document.getElementById('m-horario').value = h?.horario || '';
+  document.getElementById('m-local').value = h?.local || '';
+  document.getElementById('m-dirigente').value = h?.dirigente || '';
+  document.getElementById('modal-overlay').classList.add('ativo');
+  setTimeout(() => document.getElementById('m-horario').focus(), 50);
+}
+
+function fecharModal() {
+  document.getElementById('modal-overlay').classList.remove('ativo');
+  modalCtx = null;
+}
+
+function aplicarDado() {
+  if (!modalCtx) return;
+  const { diaNum, hi } = modalCtx;
+  const dado = {
+    horario:   document.getElementById('m-horario').value,
+    local:     document.getElementById('m-local').value,
+    dirigente: document.getElementById('m-dirigente').value,
+  };
+  if (!dados[diaNum]) dados[diaNum] = [];
+  if (hi === null) {
+    dados[diaNum].push(dado);
+  } else {
+    dados[diaNum][hi] = dado;
+  }
+  fecharModal();
+  salvarLS();
+  renderizarSemanas();
+  renderizarDocumento();
+}
+
+function removerHorario(diaNum, hi) {
+  dados[diaNum].splice(hi, 1);
+  salvarLS();
+  renderizarSemanas();
+  renderizarDocumento();
+}
+
+// ── DOCUMENTO ────────────────────────────────────────────────
+function renderizarDocumento() {
+  const tbody = document.getElementById('doc-tbody');
+  tbody.innerHTML = '';
+
+  const semanas = gerarSemanas();
+
+  semanas.forEach(semana => {
+    const tr = document.createElement('tr');
+    semana.forEach(diaNum => {
+      const td = document.createElement('td');
+      if (diaNum === null) {
+        td.className = 'doc-td-vazio';
+      } else {
+        if (diasDestacados[diaNum]) {
+          td.classList.add('doc-td-destaque');
+          td.style.background = '#fff8e1';
+          td.style.border = '2px solid #e6a817';
+        }
+        const numEl = document.createElement('span');
+        numEl.className = 'doc-dia-num';
+        numEl.textContent = diaNum;
+        td.appendChild(numEl);
+
+        // Observação do dia
+        if (observacoes[diaNum] && observacoes[diaNum].trim()) {
+          const obsEl = document.createElement('div');
+          obsEl.className = 'doc-obs';
+          obsEl.style.cssText = 'font-size:9px;font-style:italic;color:#555;background:#fffde7;border-left:2px solid #e6a817;padding:2px 4px;margin-bottom:3px;line-height:1.4;word-break:break-word;';
+          obsEl.textContent = observacoes[diaNum];
+          td.appendChild(obsEl);
+        }
+
+        const horarios = dados[diaNum] || [];
+        const CORES_BG = ['#fffbe6','#ffefc0','#ffd780','#ffc14d','#f5a623'];
+
+        horarios.forEach((h, hi) => {
+          const entry = document.createElement('div');
+          entry.className = 'doc-horario-entry';
+          entry.dataset.idx = hi % 5;
+          entry.style.background = CORES_BG[hi % 5];
+          entry.innerHTML = `
+            <span class="dh-label">Horário:</span><span class="dh-val">${h.horario}</span>
+            <span class="dh-label">Local:</span><span class="dh-val">${h.local}</span>
+            <span class="dh-label">Dirigente:</span><span class="dh-val">${h.dirigente}</span>`;
+          td.appendChild(entry);
+        });
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// ── MODAL PREVIEW ────────────────────────────────────────────
+function escalarPreviewModal() {
+  const scroll = document.getElementById('modal-preview-scroll');
+  const container = document.getElementById('preview-scale-container');
+  if (!scroll || !container) return;
+
+  const dispW = scroll.clientWidth - 32;
+  const dispH = scroll.clientHeight - 16;
+  const scale = Math.min(dispW / 794, dispH / 1123, 1);
+
+  container.style.width  = (794 * scale) + 'px';
+  container.style.height = (1123 * scale) + 'px';
+
+  const doc = document.getElementById('documento-exportavel');
+  doc.style.transform = `scale(${scale})`;
+  doc.style.transformOrigin = 'top left';
+}
+
+function abrirModalPreview() {
+  renderizarDocumento();
+
+  // Move o documento do wrapper oculto para dentro do modal
+  const doc = document.getElementById('documento-exportavel');
+  const container = document.getElementById('preview-scale-container');
+  doc.style.transform = 'none';
+  doc.style.position = 'relative';
+  container.appendChild(doc);
+
+  document.getElementById('modal-preview-overlay').classList.add('ativo');
+  setTimeout(escalarPreviewModal, 30);
+}
+
+function fecharModalPreview() {
+  // Devolve o documento ao wrapper oculto
+  const doc = document.getElementById('documento-exportavel');
+  const wrapper = document.getElementById('doc-wrapper');
+  doc.style.transform = 'none';
+  doc.style.position = 'relative';
+  wrapper.appendChild(doc);
+
+  document.getElementById('modal-preview-overlay').classList.remove('ativo');
+}
+
+// ── EXPORTAR ─────────────────────────────────────────────────
+function capturarDocumento() {
+  return new Promise(resolve => {
+    renderizarDocumento();
+
+    const doc = document.getElementById('documento-exportavel');
+    const wrapper = document.getElementById('doc-wrapper');
+
+    // Garante que o documento está no wrapper (fora do modal)
+    if (doc.parentElement !== wrapper) {
+      wrapper.appendChild(doc);
+    }
+    doc.style.transform = 'none';
+    doc.style.position = 'relative';
+
+    // Torna visível temporariamente para captura
+    wrapper.style.visibility = 'visible';
+
+    requestAnimationFrame(() => {
+      html2canvas(doc, { scale: 2, useCORS: true, width: 794, height: 1123,
+                         windowWidth: 794, windowHeight: 1123 }).then(canvas => {
+        wrapper.style.visibility = 'hidden';
+        resolve(canvas);
+      });
+    });
+  });
+}
+
+function exportarJPG() {
+  capturarDocumento().then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'programacao-campo.jpg';
+    link.href = canvas.toDataURL('image/jpeg', 0.95);
+    link.click();
+  });
+}
+
+function salvarPDF() {
+  capturarDocumento().then(canvas => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297);
+    pdf.save('programacao-campo.pdf');
+  });
+}
+
+// ── SALVAR / CARREGAR ARQUIVO ─────────────────────────────────
+function salvarArquivo() {
+  const estado = {
+    anoAtual,
+    mesAtual,
+    congregacao: document.getElementById('inp-cong').value || '',
+    dados,
+    diasDestacados,
+    observacoes
+  };
+  const blob = new Blob([JSON.stringify(estado, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  const mes = MESES_NOMES[mesAtual];
+  link.download = `programacao-campo-${mes}-${anoAtual}.json`;
+  link.href = URL.createObjectURL(blob);
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function carregarArquivo() {
+  document.getElementById('input-carregar').click();
+}
+
+function lerArquivo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const estado = JSON.parse(e.target.result);
+      if (estado.anoAtual !== undefined) anoAtual = estado.anoAtual;
+      if (estado.mesAtual !== undefined) mesAtual = estado.mesAtual;
+      dados = estado.dados || {};
+      diasDestacados = estado.diasDestacados || {};
+      observacoes = estado.observacoes || {};
+
+      // Atualiza selects
+      document.getElementById('inp-mes').value = mesAtual;
+      document.getElementById('inp-ano').value = anoAtual;
+
+      if (estado.congregacao) {
+        document.getElementById('inp-cong').value = estado.congregacao;
+        document.getElementById('doc-cong').textContent = estado.congregacao || '—';
+      }
+
+      document.getElementById('doc-ano').textContent = anoAtual;
+      document.getElementById('doc-mes').textContent = MESES_NOMES[mesAtual];
+
+      salvarLS();
+      renderizarSemanas();
+      renderizarDocumento();
+    } catch(err) {
+      alert('Erro ao carregar arquivo. Verifique se é um arquivo JSON válido.');
+    }
+  };
+  reader.readAsText(file);
+  // Reset input para permitir carregar o mesmo arquivo novamente
+  event.target.value = '';
+}
+
+// ── IMPRIMIR ──────────────────────────────────────────────────
+function imprimirDocumento() {
+  capturarDocumento().then(canvas => {
+    const printWin = window.open('', '_blank');
+    const imgSrc = canvas.toDataURL('image/jpeg', 0.95);
+    printWin.document.write('<!DOCTYPE html><html><head><title>Programacao de Campo</title>'
+      + '<style>@page{margin:0;size:A4}body{margin:0;padding:0}img{width:100%;height:auto;display:block}</style>'
+      + '</head><body><img src="' + imgSrc + '" /></body></html>');
+    printWin.document.close();
+    printWin.onload = () => { printWin.focus(); printWin.print(); };
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    fecharModal();
+    fecharModalPreview();
+  }
+});
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) fecharModal();
+});
+document.getElementById('modal-preview-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) fecharModalPreview();
+});
+
+</script>
+</body>
+</html>
